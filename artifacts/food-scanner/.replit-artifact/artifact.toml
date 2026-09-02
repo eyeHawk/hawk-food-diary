@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Food Nutrition Scanner"
+description = "A mobile-friendly web app that scans food product barcodes using the device camera and returns a nutritional summary for one serving. Uses the Open Food Facts public API — no account or API key needed."
+version = "1.0.0"
+id = "artifacts/food-scanner"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21636
+
+[services.development]
+run = "pnpm --filter @workspace/food-scanner run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/food-scanner", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/food-scanner/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21636"
+BASE_PATH = "/"

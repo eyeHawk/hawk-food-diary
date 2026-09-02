@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="16" fill="hsl(125,45%,42%)"/>
+  <!-- Leaf shape -->
+  <path d="M32 10 C32 10 46 16 46 28 C46 36 40 40 32 38 C24 40 18 36 18 28 C18 16 32 10 32 10Z" fill="white" opacity="0.95"/>
+  <!-- Center vein -->
+  <line x1="32" y1="13" x2="32" y2="37" stroke="hsl(125,45%,42%)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Side veins -->
+  <line x1="32" y1="22" x2="24" y2="28" stroke="hsl(125,45%,42%)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+  <line x1="32" y1="22" x2="40" y2="28" stroke="hsl(125,45%,42%)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+  <!-- Fork handle -->
+  <rect x="29" y="40" width="6" height="14" rx="3" fill="white" opacity="0.9"/>
+</svg>

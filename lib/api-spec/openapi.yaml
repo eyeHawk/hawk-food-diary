@@ -1,0 +1,877 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Food diary API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: foods
+    description: Food lookup and cache
+  - name: diary
+    description: Daily food diary entries
+  - name: meal-sets
+    description: Saved meal templates
+  - name: user
+    description: User preferences
+
+paths:
+  /user/preferences:
+    get:
+      operationId: getUserPreferences
+      tags: [user]
+      summary: Get the authenticated user's nutrition preferences
+      responses:
+        "200":
+          description: User nutrition preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPreferences"
+    patch:
+      operationId: updateUserPreferences
+      tags: [user]
+      summary: Update the authenticated user's nutrition preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPreferencesInput"
+      responses:
+        "200":
+          description: Updated user nutrition preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPreferences"
+        "400":
+          description: Invalid preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /foods/parse:
+    post:
+      operationId: parseFood
+      tags: [foods]
+      summary: Use AI to parse a natural-language food description into structured nutrition data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParseFoodInput"
+      responses:
+        "200":
+          description: Parsed nutrition data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParsedFood"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: AI service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /foods:
+    post:
+      operationId: createFood
+      tags: [foods]
+      summary: Save a custom food to the local database
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFoodInput"
+      responses:
+        "201":
+          description: Food created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Food"
+
+  /foods/search:
+    get:
+      operationId: searchFoods
+      tags: [foods]
+      summary: Search locally cached foods
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of matching foods
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Food"
+
+  /foods/lookup:
+    post:
+      operationId: lookupFood
+      tags: [foods]
+      summary: Look up food by barcode from Open Food Facts and save to local cache
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FoodLookupInput"
+      responses:
+        "200":
+          description: Found and returned food
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Food"
+        "404":
+          description: Product not found in Open Food Facts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /foods/history:
+    get:
+      operationId: getFoodHistory
+      tags: [foods]
+      summary: Get the authenticated user's recent food scan history
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Paginated scan history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FoodHistoryResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /diary:
+    get:
+      operationId: getDiary
+      tags: [diary]
+      summary: Get diary entries for a specific date
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            description: Date in YYYY-MM-DD format
+      responses:
+        "200":
+          description: Diary entries grouped by meal type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyDiary"
+
+  /diary/entries:
+    post:
+      operationId: addDiaryEntry
+      tags: [diary]
+      summary: Add a food entry to the diary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiaryEntryInput"
+      responses:
+        "201":
+          description: Entry created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiaryEntry"
+
+  /diary/entries/{id}:
+    delete:
+      operationId: deleteDiaryEntry
+      tags: [diary]
+      summary: Remove a diary entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Entry deleted
+        "404":
+          description: Entry not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /diary/summary:
+    get:
+      operationId: getDiarySummary
+      tags: [diary]
+      summary: Get daily nutrition totals for a date
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Daily nutrition summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailySummary"
+
+  /meal-sets:
+    get:
+      operationId: listMealSets
+      tags: [meal-sets]
+      summary: List all saved meal sets
+      responses:
+        "200":
+          description: All meal sets with their items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MealSet"
+
+    post:
+      operationId: createMealSet
+      tags: [meal-sets]
+      summary: Create a new meal set
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MealSetInput"
+      responses:
+        "201":
+          description: Meal set created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MealSet"
+
+  /meal-sets/{id}:
+    get:
+      operationId: getMealSet
+      tags: [meal-sets]
+      summary: Get a single meal set with its items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Meal set with items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MealSet"
+        "404":
+          description: Meal set not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      operationId: updateMealSet
+      tags: [meal-sets]
+      summary: Update a meal set name or category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MealSetUpdateInput"
+      responses:
+        "200":
+          description: Updated meal set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MealSet"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      operationId: deleteMealSet
+      tags: [meal-sets]
+      summary: Delete a meal set
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /meal-sets/{id}/items:
+    post:
+      operationId: addMealSetItem
+      tags: [meal-sets]
+      summary: Add a food item to a meal set
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MealSetItemInput"
+      responses:
+        "201":
+          description: Item added, returns the updated meal set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MealSet"
+        "404":
+          description: Meal set not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /meal-sets/{id}/items/{itemId}:
+    delete:
+      operationId: deleteMealSetItem
+      tags: [meal-sets]
+      summary: Remove an item from a meal set
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Item removed, returns updated meal set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MealSet"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /meal-sets/{id}/log:
+    post:
+      operationId: logMealSet
+      tags: [meal-sets]
+      summary: Log all items in a meal set as diary entries
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MealSetLogInput"
+      responses:
+        "201":
+          description: Entries created for all items in the meal set
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DiaryEntry"
+        "404":
+          description: Meal set not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    MonitoredNutrient:
+      type: string
+      enum: [potassium, sodium, cholesterol, salt, fiber]
+
+    UserPreferences:
+      type: object
+      properties:
+        monitoredNutrients:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonitoredNutrient"
+        nutrientTargets:
+          $ref: "#/components/schemas/NutrientTargets"
+      required:
+        - monitoredNutrients
+
+    UserPreferencesInput:
+      type: object
+      properties:
+        monitoredNutrients:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonitoredNutrient"
+        nutrientTargets:
+          $ref: "#/components/schemas/NutrientTargets"
+      required:
+        - monitoredNutrients
+
+    NutrientTargets:
+      type: object
+      additionalProperties: false
+      properties:
+        potassium:
+          type: number
+          minimum: 1
+        sodium:
+          type: number
+          minimum: 1
+        cholesterol:
+          type: number
+          minimum: 1
+
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Food:
+      type: object
+      properties:
+        id:
+          type: number
+        barcode:
+          type: ["string", "null"]
+        name:
+          type: string
+        brand:
+          type: ["string", "null"]
+        servingSize:
+          type: ["string", "null"]
+        kcalPerServing:
+          type: ["number", "null"]
+        fatPerServing:
+          type: ["number", "null"]
+        saturatedFatPerServing:
+          type: ["number", "null"]
+        carbsPerServing:
+          type: ["number", "null"]
+        sugarsPerServing:
+          type: ["number", "null"]
+        fiberPerServing:
+          type: ["number", "null"]
+        proteinPerServing:
+          type: ["number", "null"]
+        saltPerServing:
+          type: ["number", "null"]
+        sodiumPerServing:
+          type: ["number", "null"]
+        potassiumPerServing:
+          type: ["number", "null"]
+        cholesterolPerServing:
+          type: ["number", "null"]
+        nutriscoreGrade:
+          type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
+      required:
+        - id
+        - name
+
+    ParseFoodInput:
+      type: object
+      properties:
+        query:
+          type: string
+          minLength: 1
+      required:
+        - query
+
+    ParsedFood:
+      type: object
+      properties:
+        foodName:
+          type: string
+        quantity:
+          type: number
+        unit:
+          type: string
+        calories:
+          type: number
+        proteinG:
+          type: number
+        carbsG:
+          type: number
+        fatG:
+          type: number
+      required:
+        - foodName
+        - quantity
+        - unit
+        - calories
+        - proteinG
+        - carbsG
+        - fatG
+
+    CreateFoodInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        servingSize:
+          type: ["string", "null"]
+        kcalPerServing:
+          type: ["number", "null"]
+        fatPerServing:
+          type: ["number", "null"]
+        saturatedFatPerServing:
+          type: ["number", "null"]
+        carbsPerServing:
+          type: ["number", "null"]
+        sugarsPerServing:
+          type: ["number", "null"]
+        fiberPerServing:
+          type: ["number", "null"]
+        proteinPerServing:
+          type: ["number", "null"]
+        saltPerServing:
+          type: ["number", "null"]
+        sodiumPerServing:
+          type: ["number", "null"]
+        potassiumPerServing:
+          type: ["number", "null"]
+        cholesterolPerServing:
+          type: ["number", "null"]
+      required:
+        - name
+
+    FoodLookupInput:
+      type: object
+      properties:
+        barcode:
+          type: string
+      required:
+        - barcode
+
+    FoodHistoryEntry:
+      type: object
+      properties:
+        id:
+          type: number
+        foodId:
+          type: number
+        scannedAt:
+          type: string
+        food:
+          $ref: "#/components/schemas/Food"
+      required:
+        - id
+        - foodId
+        - scannedAt
+        - food
+
+    FoodHistoryResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/FoodHistoryEntry"
+        pagination:
+          type: object
+          properties:
+            limit:
+              type: number
+            offset:
+              type: number
+            hasMore:
+              type: boolean
+          required:
+            - limit
+            - offset
+            - hasMore
+      required:
+        - items
+        - pagination
+
+    DiaryEntry:
+      type: object
+      properties:
+        id:
+          type: number
+        date:
+          type: string
+        mealType:
+          type: string
+          enum: [breakfast, lunch, dinner, snack]
+        servings:
+          type: number
+        food:
+          $ref: "#/components/schemas/Food"
+        createdAt:
+          type: string
+      required:
+        - id
+        - date
+        - mealType
+        - servings
+        - food
+        - createdAt
+
+    DiaryEntryInput:
+      type: object
+      properties:
+        foodId:
+          type: number
+        date:
+          type: string
+          description: YYYY-MM-DD
+        mealType:
+          type: string
+          enum: [breakfast, lunch, dinner, snack]
+        servings:
+          type: number
+      required:
+        - foodId
+        - date
+        - mealType
+        - servings
+
+    DailyDiary:
+      type: object
+      properties:
+        date:
+          type: string
+        breakfast:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiaryEntry"
+        lunch:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiaryEntry"
+        dinner:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiaryEntry"
+        snack:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiaryEntry"
+      required:
+        - date
+        - breakfast
+        - lunch
+        - dinner
+        - snack
+
+    DailySummary:
+      type: object
+      properties:
+        date:
+          type: string
+        totalKcal:
+          type: number
+        totalFat:
+          type: number
+        totalCarbs:
+          type: number
+        totalProtein:
+          type: number
+        entryCount:
+          type: number
+      required:
+        - date
+        - totalKcal
+        - totalFat
+        - totalCarbs
+        - totalProtein
+        - entryCount
+
+    MealSetItem:
+      type: object
+      properties:
+        id:
+          type: number
+        servings:
+          type: number
+        food:
+          $ref: "#/components/schemas/Food"
+      required:
+        - id
+        - servings
+        - food
+
+    MealSet:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        category:
+          type: ["string", "null"]
+          enum: [breakfast, lunch, dinner, snack, null]
+        createdAt:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MealSetItem"
+      required:
+        - id
+        - name
+        - createdAt
+        - items
+
+    MealSetInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        category:
+          type: ["string", "null"]
+          enum: [breakfast, lunch, dinner, snack, null]
+      required:
+        - name
+
+    MealSetUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        category:
+          type: ["string", "null"]
+          enum: [breakfast, lunch, dinner, snack, null]
+
+    MealSetItemInput:
+      type: object
+      properties:
+        foodId:
+          type: number
+        servings:
+          type: number
+      required:
+        - foodId
+        - servings
+
+    MealSetLogInput:
+      type: object
+      properties:
+        date:
+          type: string
+          description: YYYY-MM-DD — defaults to today if omitted
+        mealType:
+          type: string
+          enum: [breakfast, lunch, dinner, snack]
+      required:
+        - mealType

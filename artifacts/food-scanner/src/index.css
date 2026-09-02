@@ -1,0 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+
+@layer theme, base, clerk, components, utilities;
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border: var(--primary-border);
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-border: var(--secondary-border);
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted-border: var(--muted-border);
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-border: var(--accent-border);
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-border: var(--destructive-border);
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary-border: var(--sidebar-primary-border);
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent-border: var(--sidebar-accent-border);
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --button-outline: rgba(0, 0, 0, 0.1);
+  --badge-outline: rgba(0, 0, 0, 0.05);
+  --opaque-button-border-intensity: -8;
+  --elevate-1: rgba(0, 0, 0, 0.03);
+  --elevate-2: rgba(0, 0, 0, 0.08);
+
+  /* Warm off-white background */
+  --background: 42 20% 97%;
+  /* Deep warm gray for text */
+  --foreground: 20 3% 17%;
+  
+  /* Borders and dividers */
+  --border: 34 16% 85%;
+  --input: 34 16% 85%;
+  --ring: 125 45% 42%;
+
+  /* Crisp white cards */
+  --card: 0 0% 100%;
+  --card-foreground: 20 3% 17%;
+  --card-border: 34 16% 90%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 3% 17%;
+  --popover-border: 34 16% 90%;
+
+  /* Fresh green accent */
+  --primary: 125 45% 42%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Muted elements */
+  --secondary: 42 15% 92%;
+  --secondary-foreground: 20 3% 30%;
+
+  --muted: 42 15% 92%;
+  --muted-foreground: 20 3% 45%;
+
+  --accent: 42 15% 92%;
+  --accent-foreground: 20 3% 17%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --sidebar: 42 20% 97%;
+  --sidebar-foreground: 20 3% 17%;
+  --sidebar-border: 34 16% 85%;
+  --sidebar-primary: 125 45% 42%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 42 15% 92%;
+  --sidebar-accent-foreground: 20 3% 17%;
+  --sidebar-ring: 125 45% 42%;
+
+  --app-font-sans: 'DM Sans', sans-serif;
+  --app-font-serif: Georgia, serif;
+  --app-font-mono: Menlo, monospace;
+  
+  --radius: 1rem;
+  
+  --shadow-2xs: 0px 2px 0px 0px hsl(34 16% 85% / 0.3);
+  --shadow-xs: 0px 2px 0px 0px hsl(34 16% 85% / 0.5);
+  --shadow-sm:
+    0px 2px 0px 0px hsl(34 16% 85% / 0.5),
+    0px 1px 2px -1px hsl(34 16% 85% / 0.5);
+  --shadow:
+    0px 2px 0px 0px hsl(34 16% 85% / 0.5),
+    0px 1px 2px -1px hsl(34 16% 85% / 0.5);
+  --shadow-md:
+    0px 2px 0px 0px hsl(34 16% 85% / 0.5),
+    0px 2px 4px -1px hsl(34 16% 85% / 0.5);
+  --shadow-lg:
+    0px 2px 0px 0px hsl(34 16% 85% / 0.5),
+    0px 4px 6px -1px hsl(34 16% 85% / 0.5);
+  --shadow-xl:
+    0px 2px 0px 0px hsl(34 16% 85% / 0.5),
+    0px 8px 10px -1px hsl(34 16% 85% / 0.5);
+  --shadow-2xl: 0px 2px 0px 0px hsl(34 16% 85% / 0.5);
+  
+  --tracking-normal: -0.01em;
+  --spacing: 0.25rem;
+}
+
+.dark {
+  /* Enforce light mode for this app as requested */
+  --background: 42 20% 97%;
+  --foreground: 20 3% 17%;
+  --border: 34 16% 85%;
+  --input: 34 16% 85%;
+  --ring: 125 45% 42%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 3% 17%;
+  --card-border: 34 16% 90%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 3% 17%;
+  --popover-border: 34 16% 90%;
+  --primary: 125 45% 42%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 42 15% 92%;
+  --secondary-foreground: 20 3% 30%;
+  --muted: 42 15% 92%;
+  --muted-foreground: 20 3% 45%;
+  --accent: 42 15% 92%;
+  --accent-foreground: 20 3% 17%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+/* Hide html5-qrcode attribution to keep UI clean */
+#barcode-reader a {
+  display: none !important;
+}
+#barcode-reader {
+  border: none !important;
+  background-color: var(--card);
+}
+#barcode-reader video {
+  border-radius: var(--radius) !important;
+  object-fit: cover !important;
+  width: 100% !important;
+}
+
+/* Style injected buttons */
+#barcode-reader button {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  padding: 0.5rem 1rem !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  cursor: pointer !important;
+  margin: 0.5rem 0 !important;
+  font-family: inherit !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+#barcode-reader button:hover {
+  opacity: 0.9 !important;
+}
+#barcode-reader select {
+  padding: 0.5rem !important;
+  border-radius: 0.5rem !important;
+  border: 1px solid hsl(var(--input)) !important;
+  background: hsl(var(--background)) !important;
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  margin: 0.5rem 0 !important;
+  width: 100% !important;
+  max-width: 250px !important;
+}
